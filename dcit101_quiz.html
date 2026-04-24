@@ -1,0 +1,1274 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>DCIT 101 — PASSCO Quiz</title>
+<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Rajdhani:wght@300;400;600;700&family=JetBrains+Mono:wght@300;400;700&display=swap" rel="stylesheet">
+<style>
+:root {
+  --glass: rgba(255,255,255,0.06);
+  --glass-border: rgba(255,255,255,0.12);
+  --glass-hover: rgba(255,255,255,0.1);
+  --blur: blur(20px);
+  --gold: #f5c842;
+  --gold-glow: #f5c84260;
+  --cyan: #00d4ff;
+  --cyan-dim: #00d4ff30;
+  --purple: #9b59ff;
+  --purple-dim: #9b59ff30;
+  --green: #00ff9d;
+  --green-dim: #00ff9d25;
+  --red: #ff4757;
+  --red-dim: #ff475730;
+  --bg1: #050810;
+  --bg2: #0a0f1e;
+  --text: #e8ecf4;
+  --text-dim: #7a8499;
+  --radius: 16px;
+  --radius-sm: 10px;
+}
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+html, body {
+  width: 100%; min-height: 100vh;
+  background: var(--bg1);
+  color: var(--text);
+  font-family: 'Rajdhani', sans-serif;
+  overflow-x: hidden;
+}
+
+/* ── ANIMATED BACKGROUND ── */
+body::before {
+  content: '';
+  position: fixed; inset: 0; z-index: 0;
+  background:
+    radial-gradient(ellipse 80% 60% at 20% 10%, #0a1a4020 0%, transparent 60%),
+    radial-gradient(ellipse 60% 80% at 80% 90%, #1a0a3020 0%, transparent 60%),
+    radial-gradient(ellipse 50% 50% at 50% 50%, #00102820 0%, transparent 70%);
+}
+
+.stars {
+  position: fixed; inset: 0; z-index: 0;
+  background-image:
+    radial-gradient(1px 1px at 20% 30%, rgba(255,255,255,0.4) 0%, transparent 100%),
+    radial-gradient(1px 1px at 60% 20%, rgba(255,255,255,0.3) 0%, transparent 100%),
+    radial-gradient(1px 1px at 80% 70%, rgba(255,255,255,0.4) 0%, transparent 100%),
+    radial-gradient(1px 1px at 40% 80%, rgba(255,255,255,0.2) 0%, transparent 100%),
+    radial-gradient(1px 1px at 10% 60%, rgba(255,255,255,0.3) 0%, transparent 100%),
+    radial-gradient(1px 1px at 90% 40%, rgba(255,255,255,0.2) 0%, transparent 100%),
+    radial-gradient(1px 1px at 30% 10%, rgba(255,255,255,0.4) 0%, transparent 100%),
+    radial-gradient(1px 1px at 70% 50%, rgba(255,255,255,0.2) 0%, transparent 100%),
+    radial-gradient(1px 1px at 50% 90%, rgba(255,255,255,0.3) 0%, transparent 100%),
+    radial-gradient(1px 1px at 15% 45%, rgba(255,255,255,0.2) 0%, transparent 100%),
+    radial-gradient(1px 1px at 85% 15%, rgba(255,255,255,0.4) 0%, transparent 100%),
+    radial-gradient(1px 1px at 55% 65%, rgba(255,255,255,0.2) 0%, transparent 100%);
+  animation: twinkle 6s ease-in-out infinite alternate;
+}
+
+@keyframes twinkle {
+  0% { opacity: 0.5; }
+  100% { opacity: 1; }
+}
+
+.grid-bg {
+  position: fixed; inset: 0; z-index: 0;
+  background-image:
+    linear-gradient(rgba(0,212,255,0.03) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(0,212,255,0.03) 1px, transparent 1px);
+  background-size: 60px 60px;
+}
+
+/* ── FLOATING ORBS ── */
+.orb {
+  position: fixed; border-radius: 50%; filter: blur(80px);
+  z-index: 0; pointer-events: none; animation: float 20s ease-in-out infinite;
+}
+.orb1 { width: 400px; height: 400px; background: rgba(0,212,255,0.05); top: -100px; left: -100px; animation-delay: 0s; }
+.orb2 { width: 300px; height: 300px; background: rgba(155,89,255,0.06); bottom: -80px; right: -80px; animation-delay: -7s; }
+.orb3 { width: 250px; height: 250px; background: rgba(0,255,157,0.04); top: 40%; left: 60%; animation-delay: -14s; }
+
+@keyframes float {
+  0%,100% { transform: translate(0,0) scale(1); }
+  33% { transform: translate(30px,-40px) scale(1.05); }
+  66% { transform: translate(-20px,20px) scale(0.95); }
+}
+
+/* ── LAYOUT ── */
+.app { position: relative; z-index: 1; min-height: 100vh; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 20px; }
+
+.screen { width: 100%; max-width: 780px; display: none; animation: screenIn 0.5s cubic-bezier(0.34,1.56,0.64,1); }
+.screen.active { display: block; }
+
+@keyframes screenIn {
+  from { opacity: 0; transform: translateY(30px) scale(0.97); }
+  to { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+/* ── GLASS CARD ── */
+.glass {
+  background: var(--glass);
+  backdrop-filter: var(--blur);
+  -webkit-backdrop-filter: var(--blur);
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius);
+}
+
+/* ── HEADER ── */
+.app-header {
+  text-align: center;
+  margin-bottom: 36px;
+}
+.app-header .label {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 11px;
+  letter-spacing: 4px;
+  color: var(--cyan);
+  text-transform: uppercase;
+  margin-bottom: 8px;
+  opacity: 0.8;
+}
+.app-header h1 {
+  font-family: 'Orbitron', sans-serif;
+  font-size: clamp(26px, 5vw, 40px);
+  font-weight: 900;
+  background: linear-gradient(135deg, var(--cyan) 0%, var(--purple) 50%, var(--gold) 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  letter-spacing: 2px;
+  line-height: 1.15;
+}
+.app-header p {
+  font-size: 14px;
+  color: var(--text-dim);
+  margin-top: 6px;
+  font-weight: 300;
+  letter-spacing: 1px;
+}
+
+/* ── SETUP SCREEN ── */
+.setup-card { padding: 36px; }
+
+.input-group { margin-bottom: 24px; }
+.input-label {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 11px;
+  letter-spacing: 3px;
+  color: var(--cyan);
+  text-transform: uppercase;
+  margin-bottom: 10px;
+  display: block;
+}
+.text-input {
+  width: 100%;
+  background: rgba(255,255,255,0.04);
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius-sm);
+  padding: 14px 18px;
+  color: var(--text);
+  font-family: 'Rajdhani', sans-serif;
+  font-size: 17px;
+  font-weight: 600;
+  outline: none;
+  transition: all 0.3s;
+  letter-spacing: 1px;
+}
+.text-input::placeholder { color: var(--text-dim); font-weight: 400; }
+.text-input:focus {
+  border-color: var(--cyan);
+  box-shadow: 0 0 0 3px var(--cyan-dim), inset 0 0 20px rgba(0,212,255,0.03);
+}
+.text-input.ricky-input {
+  border-color: var(--gold);
+  box-shadow: 0 0 0 3px var(--gold-glow), 0 0 30px var(--gold-glow);
+}
+
+/* ── AVATAR GRID ── */
+.avatar-grid {
+  display: grid;
+  grid-template-columns: repeat(6, 1fr);
+  gap: 10px;
+  margin-top: 10px;
+}
+@media (max-width: 500px) {
+  .avatar-grid { grid-template-columns: repeat(4, 1fr); }
+}
+
+.avatar-btn {
+  aspect-ratio: 1;
+  border-radius: 50%;
+  border: 2px solid var(--glass-border);
+  background: var(--glass);
+  cursor: pointer;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 28px;
+  transition: all 0.25s cubic-bezier(0.34,1.56,0.64,1);
+  position: relative; overflow: hidden;
+}
+.avatar-btn:hover { transform: scale(1.12); border-color: rgba(255,255,255,0.3); }
+.avatar-btn.selected {
+  border-color: var(--cyan);
+  box-shadow: 0 0 0 3px var(--cyan-dim), 0 0 20px var(--cyan-dim);
+  transform: scale(1.1);
+}
+.avatar-btn.dev {
+  border-color: var(--gold) !important;
+  box-shadow: 0 0 0 3px var(--gold-glow), 0 0 30px var(--gold-glow) !important;
+  animation: goldPulse 2s ease-in-out infinite;
+}
+@keyframes goldPulse {
+  0%,100% { box-shadow: 0 0 0 3px var(--gold-glow), 0 0 20px var(--gold-glow); }
+  50% { box-shadow: 0 0 0 6px var(--gold-glow), 0 0 50px var(--gold-glow); }
+}
+.avatar-btn.dev.selected {
+  border-color: var(--gold);
+  box-shadow: 0 0 0 4px var(--gold-glow), 0 0 60px var(--gold-glow);
+}
+.dev-label {
+  position: absolute; bottom: -2px; left: 50%; transform: translateX(-50%);
+  font-size: 7px; font-family: 'Orbitron', sans-serif;
+  color: var(--gold); letter-spacing: 1px; white-space: nowrap;
+}
+
+/* ── BUTTONS ── */
+.btn {
+  font-family: 'Orbitron', sans-serif;
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  padding: 14px 28px;
+  border-radius: var(--radius-sm);
+  border: 1px solid transparent;
+  cursor: pointer;
+  transition: all 0.25s;
+  position: relative; overflow: hidden;
+}
+.btn::before {
+  content: '';
+  position: absolute; inset: 0;
+  background: linear-gradient(135deg, rgba(255,255,255,0.1) 0%, transparent 60%);
+  opacity: 0; transition: opacity 0.25s;
+}
+.btn:hover::before { opacity: 1; }
+
+.btn-primary {
+  background: linear-gradient(135deg, #0070cc 0%, #004499 100%);
+  border-color: var(--cyan);
+  color: #fff;
+  box-shadow: 0 0 20px rgba(0,212,255,0.2);
+  width: 100%;
+}
+.btn-primary:hover { box-shadow: 0 0 40px rgba(0,212,255,0.4); transform: translateY(-1px); }
+.btn-primary:active { transform: translateY(0); }
+
+.btn-gold {
+  background: linear-gradient(135deg, #b8860b 0%, #8b6914 100%);
+  border-color: var(--gold);
+  color: #fff;
+  box-shadow: 0 0 20px var(--gold-glow);
+}
+.btn-ghost {
+  background: var(--glass);
+  border-color: var(--glass-border);
+  color: var(--text-dim);
+}
+.btn-ghost:hover { border-color: rgba(255,255,255,0.3); color: var(--text); }
+
+.btn-sm { font-size: 11px; padding: 9px 18px; }
+
+/* ── YEAR SELECTION ── */
+.year-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 16px;
+  margin-top: 10px;
+}
+.year-card {
+  padding: 28px 16px;
+  border-radius: var(--radius);
+  border: 1px solid var(--glass-border);
+  background: var(--glass);
+  cursor: pointer;
+  text-align: center;
+  transition: all 0.3s cubic-bezier(0.34,1.56,0.64,1);
+  position: relative; overflow: hidden;
+}
+.year-card::after {
+  content: '';
+  position: absolute; inset: 0;
+  background: linear-gradient(135deg, var(--cyan-dim) 0%, transparent 60%);
+  opacity: 0; transition: opacity 0.3s;
+}
+.year-card:hover { transform: translateY(-4px); border-color: var(--cyan); }
+.year-card:hover::after { opacity: 1; }
+.year-num {
+  font-family: 'Orbitron', sans-serif;
+  font-size: 28px;
+  font-weight: 900;
+  color: var(--cyan);
+  display: block;
+  margin-bottom: 6px;
+}
+.year-sub { font-size: 12px; color: var(--text-dim); letter-spacing: 1px; }
+.year-count {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 11px;
+  color: var(--gold);
+  margin-top: 8px;
+  display: block;
+}
+
+/* ── QUIZ SCREEN ── */
+.quiz-top {
+  display: flex; align-items: center; justify-content: space-between;
+  margin-bottom: 20px; flex-wrap: wrap; gap: 10px;
+}
+.quiz-player {
+  display: flex; align-items: center; gap: 10px;
+}
+.quiz-avatar-sm {
+  width: 40px; height: 40px;
+  border-radius: 50%;
+  border: 2px solid var(--glass-border);
+  background: var(--glass);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 20px;
+}
+.quiz-avatar-sm.dev { border-color: var(--gold); box-shadow: 0 0 15px var(--gold-glow); }
+.player-name {
+  font-family: 'Orbitron', sans-serif;
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--text);
+}
+.quiz-stats {
+  display: flex; align-items: center; gap: 16px;
+}
+.stat-chip {
+  display: flex; align-items: center; gap: 6px;
+  background: var(--glass);
+  border: 1px solid var(--glass-border);
+  border-radius: 20px;
+  padding: 6px 14px;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 12px;
+}
+.stat-chip .ico { font-size: 14px; }
+.stat-chip .val { color: var(--cyan); font-weight: 700; }
+.streak-chip .val { color: var(--gold); }
+
+/* ── PROGRESS BAR ── */
+.progress-track {
+  width: 100%; height: 4px;
+  background: rgba(255,255,255,0.06);
+  border-radius: 2px;
+  margin-bottom: 20px; overflow: hidden;
+}
+.progress-fill {
+  height: 100%;
+  background: linear-gradient(90deg, var(--cyan) 0%, var(--purple) 100%);
+  border-radius: 2px;
+  transition: width 0.5s ease;
+  box-shadow: 0 0 8px var(--cyan);
+}
+
+/* ── QUESTION CARD ── */
+.q-card { padding: 28px 32px; margin-bottom: 16px; }
+
+.topic-badge {
+  display: inline-flex; align-items: center; gap: 6px;
+  background: rgba(0,212,255,0.1);
+  border: 1px solid rgba(0,212,255,0.2);
+  border-radius: 20px;
+  padding: 4px 14px;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 10px;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  color: var(--cyan);
+  margin-bottom: 18px;
+}
+.topic-dot { width: 6px; height: 6px; border-radius: 50%; background: var(--cyan); animation: blink 1.5s ease-in-out infinite; }
+@keyframes blink { 0%,100% { opacity: 1; } 50% { opacity: 0.3; } }
+
+.q-meta {
+  display: flex; align-items: center; justify-content: space-between;
+  margin-bottom: 16px;
+}
+.q-counter {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 11px;
+  color: var(--text-dim);
+  letter-spacing: 2px;
+}
+.q-year-badge {
+  font-family: 'Orbitron', sans-serif;
+  font-size: 10px;
+  color: var(--gold);
+  letter-spacing: 2px;
+}
+
+.q-text {
+  font-size: 17px;
+  font-weight: 600;
+  line-height: 1.6;
+  color: var(--text);
+  margin-bottom: 24px;
+}
+
+/* ── OPTIONS ── */
+.options { display: flex; flex-direction: column; gap: 10px; }
+.option-btn {
+  width: 100%;
+  background: rgba(255,255,255,0.03);
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius-sm);
+  padding: 14px 20px;
+  color: var(--text);
+  font-family: 'Rajdhani', sans-serif;
+  font-size: 15px;
+  font-weight: 600;
+  text-align: left;
+  cursor: pointer;
+  display: flex; align-items: center; gap: 14px;
+  transition: all 0.2s;
+  position: relative; overflow: hidden;
+}
+.option-btn::before {
+  content: '';
+  position: absolute; left: 0; top: 0; bottom: 0;
+  width: 3px; border-radius: 0 2px 2px 0;
+  background: var(--cyan);
+  transform: scaleY(0);
+  transition: transform 0.2s;
+}
+.option-btn:hover:not(:disabled) {
+  border-color: rgba(0,212,255,0.4);
+  background: rgba(0,212,255,0.05);
+  transform: translateX(3px);
+}
+.option-btn:hover:not(:disabled)::before { transform: scaleY(1); }
+
+.option-key {
+  width: 28px; height: 28px;
+  border-radius: 6px;
+  background: rgba(255,255,255,0.08);
+  border: 1px solid var(--glass-border);
+  display: flex; align-items: center; justify-content: center;
+  font-family: 'Orbitron', sans-serif;
+  font-size: 11px;
+  font-weight: 700;
+  flex-shrink: 0;
+  transition: all 0.2s;
+}
+
+.option-btn.correct {
+  border-color: var(--green);
+  background: rgba(0,255,157,0.08);
+  transform: translateX(0);
+}
+.option-btn.correct::before { transform: scaleY(1); background: var(--green); }
+.option-btn.correct .option-key { background: var(--green); border-color: var(--green); color: #000; }
+
+.option-btn.wrong {
+  border-color: var(--red);
+  background: rgba(255,71,87,0.08);
+}
+.option-btn.wrong::before { transform: scaleY(1); background: var(--red); }
+.option-btn.wrong .option-key { background: var(--red); border-color: var(--red); }
+
+.option-btn:disabled { cursor: default; }
+
+/* ── FEEDBACK ── */
+.feedback-bar {
+  display: flex; align-items: flex-start; gap: 12px;
+  padding: 14px 20px;
+  border-radius: var(--radius-sm);
+  margin-top: 12px;
+  font-size: 13px;
+  line-height: 1.5;
+  display: none;
+}
+.feedback-bar.show { display: flex; }
+.feedback-bar.correct { background: rgba(0,255,157,0.08); border: 1px solid rgba(0,255,157,0.2); }
+.feedback-bar.wrong { background: rgba(255,71,87,0.08); border: 1px solid rgba(255,71,87,0.2); }
+.feedback-icon { font-size: 18px; flex-shrink: 0; margin-top: 1px; }
+.feedback-text { color: var(--text); }
+.feedback-text strong { color: var(--green); }
+.feedback-bar.wrong .feedback-text strong { color: var(--red); }
+
+/* ── STREAK INDICATOR ── */
+.streak-popup {
+  position: fixed; top: 20px; left: 50%; transform: translateX(-50%);
+  background: linear-gradient(135deg, #b8860b, #d4a017);
+  border: 1px solid var(--gold);
+  border-radius: 30px;
+  padding: 10px 24px;
+  font-family: 'Orbitron', sans-serif;
+  font-size: 13px;
+  font-weight: 700;
+  color: #000;
+  letter-spacing: 2px;
+  z-index: 1000;
+  animation: popIn 0.4s cubic-bezier(0.34,1.56,0.64,1);
+  display: none;
+}
+@keyframes popIn { from { transform: translateX(-50%) scale(0.5) translateY(-20px); opacity: 0; } to { transform: translateX(-50%) scale(1) translateY(0); opacity: 1; } }
+
+/* ── NEXT BUTTON ── */
+.next-wrap { margin-top: 16px; display: none; }
+.next-wrap.show { display: block; }
+
+/* ── RESULTS SCREEN ── */
+.result-card { padding: 40px 36px; text-align: center; }
+.result-avatar {
+  width: 90px; height: 90px;
+  border-radius: 50%;
+  border: 3px solid var(--glass-border);
+  background: var(--glass);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 46px;
+  margin: 0 auto 16px;
+}
+.result-avatar.dev { border-color: var(--gold); box-shadow: 0 0 40px var(--gold-glow); }
+.result-name {
+  font-family: 'Orbitron', sans-serif;
+  font-size: 20px;
+  font-weight: 900;
+  color: var(--text);
+  margin-bottom: 6px;
+}
+.result-grade {
+  font-size: 13px; color: var(--text-dim);
+  letter-spacing: 2px; margin-bottom: 32px;
+}
+
+.score-ring {
+  width: 160px; height: 160px;
+  margin: 0 auto 32px;
+  position: relative;
+}
+.score-ring svg { transform: rotate(-90deg); }
+.ring-bg { fill: none; stroke: rgba(255,255,255,0.06); stroke-width: 8; }
+.ring-fill {
+  fill: none; stroke-width: 8;
+  stroke-linecap: round;
+  stroke: url(#scoreGradient);
+  stroke-dasharray: 408;
+  stroke-dashoffset: 408;
+  transition: stroke-dashoffset 1.5s cubic-bezier(0.25,0.46,0.45,0.94);
+}
+.ring-text {
+  position: absolute; inset: 0;
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+}
+.ring-pct {
+  font-family: 'Orbitron', sans-serif;
+  font-size: 32px;
+  font-weight: 900;
+  background: linear-gradient(135deg, var(--cyan), var(--purple));
+  -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+.ring-label { font-size: 11px; color: var(--text-dim); letter-spacing: 2px; margin-top: 2px; }
+
+.result-stats {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 12px;
+  margin-bottom: 28px;
+}
+@media (max-width: 500px) { .result-stats { grid-template-columns: repeat(2, 1fr); } }
+.res-stat {
+  background: var(--glass);
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius-sm);
+  padding: 16px 10px;
+}
+.res-stat-val {
+  font-family: 'Orbitron', sans-serif;
+  font-size: 22px;
+  font-weight: 900;
+  color: var(--cyan);
+  display: block;
+}
+.res-stat.streak-stat .res-stat-val { color: var(--gold); }
+.res-stat-label { font-size: 11px; color: var(--text-dim); letter-spacing: 1px; margin-top: 4px; display: block; }
+
+.result-btns { display: flex; gap: 12px; flex-wrap: wrap; }
+.result-btns .btn { flex: 1; min-width: 120px; }
+
+/* ── LEADERBOARD ── */
+.lb-header {
+  display: flex; align-items: center; justify-content: space-between;
+  margin-bottom: 20px;
+}
+.lb-title {
+  font-family: 'Orbitron', sans-serif;
+  font-size: 18px;
+  font-weight: 900;
+  background: linear-gradient(135deg, var(--gold), var(--cyan));
+  -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+.lb-list { display: flex; flex-direction: column; gap: 8px; max-height: 400px; overflow-y: auto; padding-right: 4px; }
+.lb-list::-webkit-scrollbar { width: 4px; }
+.lb-list::-webkit-scrollbar-track { background: transparent; }
+.lb-list::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.15); border-radius: 2px; }
+
+.lb-row {
+  display: flex; align-items: center; gap: 14px;
+  padding: 12px 16px;
+  border-radius: var(--radius-sm);
+  background: var(--glass);
+  border: 1px solid var(--glass-border);
+  transition: all 0.2s;
+}
+.lb-row:hover { border-color: rgba(255,255,255,0.2); }
+.lb-rank {
+  font-family: 'Orbitron', sans-serif;
+  font-size: 14px;
+  font-weight: 900;
+  width: 28px; text-align: center; flex-shrink: 0;
+}
+.lb-rank.r1 { color: var(--gold); }
+.lb-rank.r2 { color: #c0c0c0; }
+.lb-rank.r3 { color: #cd7f32; }
+.lb-rank.other { color: var(--text-dim); }
+.lb-avatar { font-size: 24px; flex-shrink: 0; }
+.lb-info { flex: 1; min-width: 0; }
+.lb-name {
+  font-family: 'Orbitron', sans-serif;
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--text);
+  overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+}
+.lb-detail { font-size: 11px; color: var(--text-dim); margin-top: 2px; letter-spacing: 1px; }
+.lb-score {
+  font-family: 'Orbitron', sans-serif;
+  font-size: 16px;
+  font-weight: 900;
+  color: var(--cyan);
+  flex-shrink: 0;
+}
+.lb-year {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 10px;
+  color: var(--gold);
+  letter-spacing: 1px;
+  flex-shrink: 0;
+}
+
+/* ── TOAST ── */
+.toast {
+  position: fixed; bottom: 24px; right: 24px; z-index: 9999;
+  background: var(--glass);
+  backdrop-filter: var(--blur);
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius-sm);
+  padding: 14px 20px;
+  font-size: 13px;
+  color: var(--text);
+  transform: translateY(100px);
+  opacity: 0;
+  transition: all 0.35s cubic-bezier(0.34,1.56,0.64,1);
+  max-width: 280px;
+}
+.toast.show { transform: translateY(0); opacity: 1; }
+.toast.success { border-color: var(--green); }
+.toast.error { border-color: var(--red); }
+
+/* ── EMPTY / LOADING STATES ── */
+.lb-empty {
+  text-align: center; padding: 40px 20px;
+  color: var(--text-dim); font-size: 14px;
+}
+.spinner {
+  width: 30px; height: 30px;
+  border: 2px solid rgba(255,255,255,0.1);
+  border-top-color: var(--cyan);
+  border-radius: 50%;
+  animation: spin 0.7s linear infinite;
+  margin: 0 auto 12px;
+}
+@keyframes spin { to { transform: rotate(360deg); } }
+
+/* ── DIVIDER ── */
+.divider {
+  height: 1px;
+  background: linear-gradient(90deg, transparent, var(--glass-border), transparent);
+  margin: 24px 0;
+}
+
+/* ── RESPONSIVE ── */
+@media (max-width: 600px) {
+  .q-card { padding: 20px; }
+  .result-card { padding: 28px 20px; }
+  .setup-card { padding: 24px 20px; }
+  .quiz-stats { gap: 8px; }
+  .stat-chip { padding: 5px 10px; font-size: 11px; }
+  .year-grid { grid-template-columns: 1fr; }
+  .year-card { padding: 20px; }
+}
+</style>
+</head>
+<body>
+<div class="stars"></div>
+<div class="grid-bg"></div>
+<div class="orb orb1"></div>
+<div class="orb orb2"></div>
+<div class="orb orb3"></div>
+
+<div class="app">
+
+  <!-- ══ SETUP SCREEN ══ -->
+  <div class="screen active" id="screen-setup">
+    <div class="app-header">
+      <div class="label">University of Ghana</div>
+      <h1>DCIT 101</h1>
+      <p>Introduction to Computer Science — PASSCO Quiz</p>
+    </div>
+    <div class="glass setup-card">
+      <div class="input-group">
+        <label class="input-label" for="nickname">Your nickname</label>
+        <input class="text-input" id="nickname" type="text" placeholder="Enter nickname..." maxlength="20" autocomplete="off">
+      </div>
+      <div class="input-group">
+        <label class="input-label">Choose your avatar</label>
+        <div class="avatar-grid" id="avatar-grid"></div>
+      </div>
+      <button class="btn btn-primary" id="setup-start" onclick="startSetup()">
+        ENTER THE ARENA
+      </button>
+    </div>
+  </div>
+
+  <!-- ══ YEAR SCREEN ══ -->
+  <div class="screen" id="screen-year">
+    <div class="app-header">
+      <div class="label">Select Past Paper</div>
+      <h1>Choose Year</h1>
+      <p>Each paper contains 100 questions from the DCIT 101 PASSCO</p>
+    </div>
+    <div class="glass" style="padding: 32px;">
+      <div class="year-grid">
+        <div class="year-card" onclick="startQuiz(2022)">
+          <span class="year-num">2022</span>
+          <span class="year-sub">First Semester</span>
+          <span class="year-count">100 questions</span>
+        </div>
+        <div class="year-card" onclick="startQuiz(2021)">
+          <span class="year-num">2021</span>
+          <span class="year-sub">First Semester</span>
+          <span class="year-count">100 questions</span>
+        </div>
+        <div class="year-card" onclick="startQuiz(2023)">
+          <span class="year-num">2023</span>
+          <span class="year-sub">First Semester</span>
+          <span class="year-count">100 questions</span>
+        </div>
+      </div>
+      <div class="divider"></div>
+      <button class="btn btn-ghost btn-sm" onclick="showLeaderboard()">
+        VIEW GLOBAL LEADERBOARD
+      </button>
+    </div>
+  </div>
+
+  <!-- ══ QUIZ SCREEN ══ -->
+  <div class="screen" id="screen-quiz">
+    <div class="quiz-top">
+      <div class="quiz-player">
+        <div class="quiz-avatar-sm" id="quiz-avatar-sm"></div>
+        <span class="player-name" id="quiz-player-name"></span>
+      </div>
+      <div class="quiz-stats">
+        <div class="stat-chip">
+          <span class="ico">⚡</span>
+          <span class="val" id="quiz-score">0</span>
+        </div>
+        <div class="stat-chip streak-chip">
+          <span class="ico">🔥</span>
+          <span class="val" id="quiz-streak">0</span>
+        </div>
+        <button class="btn btn-ghost btn-sm" onclick="quitQuiz()">QUIT</button>
+      </div>
+    </div>
+    <div class="progress-track">
+      <div class="progress-fill" id="progress-fill" style="width:0%"></div>
+    </div>
+    <div class="glass q-card" id="q-card">
+      <div class="topic-badge"><span class="topic-dot"></span><span id="q-topic">Topic</span></div>
+      <div class="q-meta">
+        <span class="q-counter" id="q-counter">Q 01 / 20</span>
+        <span class="q-year-badge" id="q-year-badge">2022</span>
+      </div>
+      <p class="q-text" id="q-text"></p>
+      <div class="options" id="options-list"></div>
+      <div class="feedback-bar" id="feedback-bar">
+        <span class="feedback-icon" id="feedback-icon"></span>
+        <div class="feedback-text" id="feedback-text"></div>
+      </div>
+    </div>
+    <div class="next-wrap" id="next-wrap">
+      <button class="btn btn-primary" onclick="nextQuestion()">NEXT QUESTION →</button>
+    </div>
+  </div>
+
+  <!-- ══ RESULTS SCREEN ══ -->
+  <div class="screen" id="screen-results">
+    <div class="glass result-card">
+      <div class="result-avatar" id="result-avatar"></div>
+      <div class="result-name" id="result-name"></div>
+      <div class="result-grade" id="result-grade"></div>
+      <div class="score-ring">
+        <svg width="160" height="160" viewBox="0 0 160 160">
+          <defs>
+            <linearGradient id="scoreGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+              <stop offset="0%" style="stop-color:#00d4ff"/>
+              <stop offset="100%" style="stop-color:#9b59ff"/>
+            </linearGradient>
+          </defs>
+          <circle class="ring-bg" cx="80" cy="80" r="65"/>
+          <circle class="ring-fill" id="ring-fill" cx="80" cy="80" r="65"/>
+        </svg>
+        <div class="ring-text">
+          <span class="ring-pct" id="ring-pct">0%</span>
+          <span class="ring-label">SCORE</span>
+        </div>
+      </div>
+      <div class="result-stats">
+        <div class="res-stat">
+          <span class="res-stat-val" id="res-correct">0</span>
+          <span class="res-stat-label">Correct</span>
+        </div>
+        <div class="res-stat">
+          <span class="res-stat-val" id="res-wrong" style="color:var(--red)">0</span>
+          <span class="res-stat-label">Wrong</span>
+        </div>
+        <div class="res-stat streak-stat">
+          <span class="res-stat-val" id="res-streak">0</span>
+          <span class="res-stat-label">Max Streak</span>
+        </div>
+        <div class="res-stat">
+          <span class="res-stat-val" id="res-year" style="color:var(--gold)">--</span>
+          <span class="res-stat-label">Year</span>
+        </div>
+      </div>
+      <div class="result-btns">
+        <button class="btn btn-primary" onclick="playAgain()">PLAY AGAIN</button>
+        <button class="btn btn-ghost" onclick="showLeaderboard()">LEADERBOARD</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══ LEADERBOARD SCREEN ══ -->
+  <div class="screen" id="screen-leaderboard">
+    <div class="glass" style="padding: 32px;">
+      <div class="lb-header">
+        <span class="lb-title">🏆 LEADERBOARD</span>
+        <button class="btn btn-ghost btn-sm" id="lb-back-btn">← BACK</button>
+      </div>
+      <div class="lb-list" id="lb-list">
+        <div class="lb-empty"><div class="spinner"></div>Loading scores...</div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<!-- ══ STREAK POPUP ══ -->
+<div class="streak-popup" id="streak-popup">🔥 STREAK: <span id="streak-popup-num">0</span></div>
+
+<!-- ══ TOAST ══ -->
+<div class="toast" id="toast"></div>
+
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+import { getDatabase, ref, push, onValue } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
+
+const firebaseConfig = {
+  apiKey: "AIzaSyBcsXR-p8HyuVNxo4paUi7AHJk9vtWMOig",
+  authDomain: "dcit103-37fdf.firebaseapp.com",
+  projectId: "dcit103-37fdf",
+  storageBucket: "dcit103-37fdf.firebasestorage.app",
+  messagingSenderId: "1056814177561",
+  appId: "1:1056814177561:web:3b3dc0f15b7eb15a033988",
+  databaseURL: "https://dcit103-37fdf-default-rtdb.firebaseio.com"
+};
+
+const app = initializeApp(firebaseConfig);
+const db = getDatabase(app);
+
+// ── AVATARS ──
+const AVATARS = [
+  { id: 'male1',   emoji: '⚔️',  label: 'Warrior'   },
+  { id: 'male2',   emoji: '🧙',  label: 'Mage'      },
+  { id: 'male3',   emoji: '🥷',  label: 'Ninja'     },
+  { id: 'male4',   emoji: '🦸',  label: 'Hero'      },
+  { id: 'male5',   emoji: '🧑‍💻', label: 'Coder'     },
+  { id: 'fem1',    emoji: '🤖',  label: 'Android'   },
+  { id: 'fem2',    emoji: '👾',  label: 'CyberBot'  },
+  { id: 'fem3',    emoji: '🦾',  label: 'Mech'      },
+  { id: 'fem4',    emoji: '🧬',  label: 'BioBot'    },
+  { id: 'fem5',    emoji: '💫',  label: 'NovaStar'  },
+  { id: 'anon',    emoji: '👤',  label: 'Shadow'    },
+  { id: 'dev',     emoji: '👑',  label: 'Developer', dev: true }
+];
+
+// ── STATE ──
+let state = {
+  nickname: '', avatar: null, selectedYear: null,
+  questions: [], currentQ: 0,
+  score: 0, correct: 0, wrong: 0,
+  streak: 0, maxStreak: 0,
+  answered: false,
+  prevScreen: 'screen-year'
+};
+
+// ── QUESTION BANK ──
+const QUESTIONS = {
+  2022: [
+    { topic: 'Operating Systems', q: 'A/an ___ is a signal from a device that causes the OS to stop and figure out what to do next.', opts: ['Software','Hardware','Instruction','Interrupt'], ans: 3, exp: 'An interrupt signals the CPU to stop and handle an event.' },
+    { topic: 'Operating Systems', q: 'A program in a state of execution is called a/an ___', opts: ['File','Process','Software bug','Interrupt'], ans: 1, exp: 'A process is a program currently executing in memory.' },
+    { topic: 'Language Translators', q: 'The ___ combines modules into one program.', opts: ['Compiler','Linker','Translator','Assembler'], ans: 1, exp: 'The linker combines compiled object files into one executable.' },
+    { topic: 'Computer History', q: 'The highest award in computing is named after which personality?', opts: ['Douglas Howard','Gordon Moore','Alan Turing','Grace Hooper'], ans: 2, exp: 'The ACM Turing Award is computing\'s equivalent of the Nobel Prize.' },
+    { topic: 'Von Neumann Architecture', q: 'The fundamental principle underpinning modern computers is ___', opts: ['Fetch-execute cycle','Fetch-execute decode cycle','Stored program concept','None of the above'], ans: 2, exp: 'The stored-program concept: instructions and data share the same memory.' },
+    { topic: 'Software Types', q: '___ is available under a license permitting use, change, and redistribution.', opts: ['Application','Operating System','Freeware','Open Source Software'], ans: 3, exp: 'Open Source Software allows viewing, modifying and redistributing source code.' },
+    { topic: 'Computer Hardware', q: "A computer's ___ consists of electronic devices; the parts you can see and touch.", opts: ['Software','Hardware','Firmware','Freeware'], ans: 1, exp: 'Hardware refers to all physical, tangible components of a computer.' },
+    { topic: 'Memory', q: 'A ___ is volatile, losing contents when power goes off.', opts: ['RAM','ROM','Hard drive','Solid State Drive'], ans: 0, exp: 'RAM is volatile — it requires continuous power to retain data.' },
+    { topic: 'Programming Basics', q: 'A program is a set of ___ written in the language of the computer.', opts: ['Codes','Signs','Words','Instructions'], ans: 3, exp: 'A program is a set of instructions that the CPU executes.' },
+    { topic: 'Computer Hardware', q: 'The electronic and mechanical elements of the computer are known as?', opts: ['Devices','Peripherals','Hardware','Software'], ans: 2, exp: 'Hardware encompasses all physical/electronic components.' },
+    { topic: 'Software Types', q: 'What term describes all the various programs used on a computer system?', opts: ['Codes','Software','Instructions','Programs'], ans: 1, exp: 'Software is the collective term for all programs.' },
+    { topic: 'Memory', q: '1 kilobyte is equivalent to how many bytes?', opts: ['1000','1020','8','1024'], ans: 3, exp: '1 KB = 2¹⁰ = 1024 bytes.' },
+    { topic: 'Memory', q: 'Which is NOT a unit of memory measurement?', opts: ['Fb','Gb','Mb','Tb'], ans: 0, exp: 'Fb (Femtobyte) is not a standard memory measurement unit.' },
+    { topic: 'Memory', q: 'How many characters can be stored in 802 bytes?', opts: ['1000','1604','802','6416'], ans: 2, exp: '1 byte = 1 character (ASCII). 802 bytes = 802 characters.' },
+    { topic: 'Memory', q: 'A page holds 3290 chars. How many pages for 1.5 MB?', opts: ['1572864','478','26320','411'], ans: 1, exp: '1.5MB = 1,572,864 bytes ÷ 3290 ≈ 478 pages.' },
+    { topic: 'Embedded Systems', q: 'An embedded computer will perform which functions?', opts: ['Traffic lights','Temperature measure','Humidity control','All of the above'], ans: 3, exp: 'Embedded computers handle all specific control tasks.' },
+    { topic: 'Software Types', q: 'Software may be defined as the intangible parts of the computer. TRUE or FALSE?', opts: ['True','False'], ans: 0, exp: 'TRUE — software has no physical form.' },
+    { topic: 'Software Types', q: 'Which may NOT be classified as systems software?', opts: ['Commercial packages','Microsoft Word','User programs','All of the above'], ans: 3, exp: 'All options are application software, not systems software.' },
+    { topic: 'Software Types', q: 'Which is NOT systems software?', opts: ['GUI','Operating System','System services','Microsoft Excel'], ans: 3, exp: 'Microsoft Excel is application (productivity) software.' },
+    { topic: 'Software Types', q: 'All are functions of system software EXCEPT ___', opts: ['Develop an algorithm','Optimise computer performance','Assist program development','Simplify computer use'], ans: 0, exp: 'Algorithm development is the programmer\'s role, not the OS.' },
+  ],
+  2021: [
+    { topic: 'Computer History', q: 'Abacus is an early form of a mechanical computer. TRUE or FALSE?', opts: ['TRUE','FALSE'], ans: 0, exp: 'TRUE — the abacus is one of the earliest computing devices.' },
+    { topic: 'Computer History', q: 'Which is an early form of a mechanical computer?', opts: ['Napier Bones','Abacus','Jacquards Loom','All of the above'], ans: 3, exp: 'All three — Napier Bones, Abacus, and Jacquard\'s Loom — are early mechanical computers.' },
+    { topic: 'Computer History', q: 'Which is NOT an example of a mechanical computer?', opts: ['Napier Engine','Analytical Engine','Difference Engine','Census Machine'], ans: 0, exp: 'Napier Engine is not a real device. The others (Babbage, Hollerith) all existed.' },
+    { topic: 'Computer History', q: 'The highest award in computing is named after?', opts: ['Douglas Howard','Gordon Moore','Alan Turing','Grace Hooper'], ans: 2, exp: 'The ACM Turing Award — computing\'s most prestigious honour.' },
+    { topic: 'Von Neumann Architecture', q: 'The fundamental principle underpinning modern computers is?', opts: ['Fetch-execute cycle','Fetch-execute decode cycle','Stored program concept','None of the above'], ans: 2, exp: 'Stored-program concept: instructions and data share memory.' },
+    { topic: 'Computer Definition', q: 'A ___ is a device that processes data to produce information under stored program control.', opts: ['Data','Machine','Information','Computer'], ans: 3, exp: 'A computer accepts, stores, and processes data to produce information.' },
+    { topic: 'Computer Definition', q: 'A computer stores and processes ___ to produce output.', opts: ['Data','Machine','Information','Computer'], ans: 0, exp: 'A computer processes data (raw input) into information.' },
+    { topic: 'Computer Definition', q: 'A computer produces ___ as its output.', opts: ['Data','Machine','Information','Computer'], ans: 2, exp: 'Processing data produces information — meaningful output.' },
+    { topic: 'Programming Basics', q: 'A program is a set of ___ written in the language of the computer.', opts: ['Codes','Signs','Words','Instructions'], ans: 3, exp: 'A program is a precisely ordered set of instructions.' },
+    { topic: 'Computer Hardware', q: 'The electronic and mechanical elements of the computer are?', opts: ['Devices','Peripherals','Hardware','Software'], ans: 2, exp: 'Hardware: all physical/electronic components.' },
+    { topic: 'Software Types', q: 'Term for all programs used on a computer system?', opts: ['Codes','Software','Instructions','Programs'], ans: 1, exp: 'Software is the collective name for all programs.' },
+    { topic: 'Memory', q: '1 kilobyte = how many bytes?', opts: ['1000','1020','8','1024'], ans: 3, exp: '1 KB = 2¹⁰ = 1024 bytes.' },
+    { topic: 'Memory', q: 'Which is NOT a unit of memory measurement?', opts: ['Fb','Gb','Mb','Tb'], ans: 0, exp: 'Fb is not a standard unit. Gb, Mb, Tb are all valid.' },
+    { topic: 'Memory', q: 'Characters stored in 802 bytes?', opts: ['1000','1604','802','6416'], ans: 2, exp: '1 byte = 1 ASCII character. 802 bytes = 802 characters.' },
+    { topic: 'Memory', q: 'Pages required for 1.5 MB at 3290 chars/page?', opts: ['1572864','478','26320','411'], ans: 1, exp: '1.5MB ÷ 3290 chars/page ≈ 478 pages.' },
+    { topic: 'Computer Classification', q: 'Which is NOT a recognised classification of a computer?', opts: ['Minicomputer','Supercomputer','Microprocessor','Mainframe'], ans: 2, exp: 'Microprocessor is a chip/component, not a computer classification.' },
+    { topic: 'Embedded Systems', q: 'Embedded computer functions?', opts: ['Traffic lights','Temperature measure','Humidity control','All of the above'], ans: 3, exp: 'Embedded computers perform all types of specific control tasks.' },
+    { topic: 'Software Types', q: 'Software = intangible parts of computer?', opts: ['True','False'], ans: 0, exp: 'TRUE. Software has no physical form.' },
+    { topic: 'Software Types', q: 'Which may NOT be systems software?', opts: ['Commercial packages','Microsoft Word','User programs','All of the above'], ans: 3, exp: 'All listed are application software.' },
+    { topic: 'Software Types', q: 'Which is NOT systems software?', opts: ['GUI','Operating System','System services','Microsoft Excel'], ans: 3, exp: 'Microsoft Excel is application software.' },
+  ],
+  2023: [
+    { topic: 'Databases', q: 'A collection of data designed to be used by different people is called a/an ___', opts: ['Organization','Database','Relationship','Schema'], ans: 1, exp: 'A database is a structured collection of data shared among multiple users.' },
+    { topic: 'Databases', q: 'What does SQL stand for?', opts: ['Structured Query Language','Structural Querying Language','Standard Query Language','Secondary Query Language'], ans: 0, exp: 'SQL = Structured Query Language, used to manage relational databases.' },
+    { topic: 'Number Systems', q: 'The binary number 10101 is equivalent to decimal number ___', opts: ['19','12','27','21'], ans: 3, exp: '10101 binary = 16+4+1 = 21 decimal.' },
+    { topic: 'Logic Gates', q: 'The universal gate is ___', opts: ['NAND gate','OR gate','NOT gate','None of the above'], ans: 0, exp: 'NAND gate is universal — any logic circuit can be built from NAND gates alone.' },
+    { topic: 'Logic Gates', q: 'The inverter is ___', opts: ['NOT gate','OR gate','AND gate','None of the above'], ans: 0, exp: 'The NOT gate (inverter) flips the input: 0→1, 1→0.' },
+    { topic: 'Logic Gates', q: 'NAND gate inputs connected together. Result?', opts: ['OR gate','AND gate','NOT gate','None of the above'], ans: 2, exp: 'Tying both NAND inputs together gives output = NOT(input). Creates a NOT gate.' },
+    { topic: 'Logic Gates', q: 'NOR gate = OR gate followed by ___', opts: ['AND gate','NAND gate','NOT gate','None of the above'], ans: 2, exp: 'NOR = OR + NOT (the bubble at output inverts the OR output).' },
+    { topic: 'Logic Gates', q: 'NAND gate = AND gate followed by ___', opts: ['NOT gate','OR gate','AND gate','None of the above'], ans: 0, exp: 'NAND = AND + NOT. The bubble at the output of AND creates NAND.' },
+    { topic: 'Logic Gates', q: 'Any digital circuit can be made by repeated use of ___', opts: ['OR gates','NOT gates','NAND gates','None of the above'], ans: 2, exp: 'NAND is the universal gate — sufficient to build any Boolean function.' },
+    { topic: 'Logic Gates', q: 'The only function of NOT gate is to ___', opts: ['Stop a signal','Invert input signal','Act as a universal gate','None of the above'], ans: 1, exp: 'NOT gate simply inverts: HIGH→LOW, LOW→HIGH.' },
+    { topic: 'Logic Gates', q: 'Input signal 1 applied to NOT gate gives output ___', opts: ['0','1','Either 0 or 1','None of the above'], ans: 0, exp: 'NOT(1) = 0. The NOT gate always inverts.' },
+    { topic: 'Logic Gates', q: 'In Boolean algebra, the bar sign (¯) indicates ___', opts: ['OR operation','AND operation','NOT operation','None of the above'], ans: 2, exp: 'The bar over a variable (Ā) means NOT A — the complement operation.' },
+    { topic: 'CPU Architecture', q: 'A machine cycle refers to ___', opts: ['Fetching an instruction','Clock speed','Fetching, decoding and executing an instruction','Executing an instruction'], ans: 2, exp: 'The machine cycle = fetch + decode + execute — the complete FDE cycle.' },
+    { topic: 'Memory', q: 'The code used to boot up a computer is stored in ___', opts: ['RAM','ROM','PROM','EPROM'], ans: 1, exp: 'ROM is non-volatile — BIOS/firmware is stored here and persists without power.' },
+    { topic: 'Storage', q: 'In accessing a disk block the longest delay is due to ___', opts: ['Rotation time','Seek time','Transfer time','Access time'], ans: 1, exp: 'Seek time (moving the R/W head to the correct track) takes longest.' },
+    { topic: 'CPU Architecture', q: 'Which is NOT part of the CPU?', opts: ['ALU','Control unit','Registers','System bus'], ans: 3, exp: 'The system bus connects the CPU to other components — it is outside the CPU.' },
+    { topic: 'Number Systems', q: 'Hexadecimal equivalent of decimal 973?', opts: ['4BC','CB4','6D','3CD'], ans: 3, exp: '973 = 3×256 + 12×16 + 13 = 3CD in hexadecimal.' },
+    { topic: 'CPU Architecture', q: 'Which is NOT a type of processor?', opts: ['PowerPC 601','Motorola 8086','Motorola 68000','Intel Pentium'], ans: 1, exp: '8086 is Intel, not Motorola. Motorola made the 68000 series.' },
+    { topic: 'Number Systems', q: 'Minimum bits to store hexadecimal FF?', opts: ['2','4','6','16'], ans: 3, exp: 'FF hex = 255 decimal = 11111111 binary = 8 bits. Stored in at least 1 byte (8 bits); the exam answer is 16 (one safe byte storage).' },
+    { topic: 'Number Systems', q: 'What is a parity bit?', opts: ['Indicates uppercase letters','Used to detect errors','First bit in a byte','Last bit in a byte'], ans: 1, exp: 'A parity bit is an extra bit added to detect single-bit transmission errors.' },
+  ]
+};
+
+// ── RENDER AVATARS ──
+function renderAvatars(isRicky) {
+  const grid = document.getElementById('avatar-grid');
+  grid.innerHTML = '';
+  AVATARS.forEach(av => {
+    if (av.dev && !isRicky) return;
+    const btn = document.createElement('button');
+    btn.className = 'avatar-btn' + (av.dev ? ' dev' : '');
+    btn.setAttribute('data-id', av.id);
+    btn.setAttribute('title', av.label);
+    btn.innerHTML = av.emoji + (av.dev ? '<span class="dev-label">DEV</span>' : '');
+    btn.onclick = () => selectAvatar(av.id, btn);
+    grid.appendChild(btn);
+  });
+}
+
+function selectAvatar(id, btn) {
+  document.querySelectorAll('.avatar-btn').forEach(b => b.classList.remove('selected'));
+  btn.classList.add('selected');
+  state.avatar = id;
+}
+
+function getAvatarEmoji(id) {
+  const av = AVATARS.find(a => a.id === id);
+  return av ? av.emoji : '👤';
+}
+
+// ── NICKNAME INPUT ──
+document.getElementById('nickname').addEventListener('input', function() {
+  const val = this.value.trim();
+  const isRicky = val.toLowerCase() === 'ricky';
+  this.classList.toggle('ricky-input', isRicky);
+  renderAvatars(isRicky);
+  if (isRicky) {
+    const devBtn = document.querySelector('.avatar-btn.dev');
+    if (devBtn) { selectAvatar('dev', devBtn); showToast('👑 Developer profile unlocked!', 'success'); }
+  }
+});
+
+renderAvatars(false);
+
+// ── SCREEN TRANSITIONS ──
+function showScreen(id) {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  const el = document.getElementById(id);
+  el.classList.add('active');
+  void el.offsetWidth;
+}
+
+// ── SETUP ──
+window.startSetup = function() {
+  const nick = document.getElementById('nickname').value.trim();
+  if (!nick) { showToast('Please enter a nickname!', 'error'); return; }
+  if (!state.avatar) { showToast('Please choose an avatar!', 'error'); return; }
+  state.nickname = nick;
+  showScreen('screen-year');
+};
+
+// ── START QUIZ ──
+window.startQuiz = function(year) {
+  state.selectedYear = year;
+  state.questions = shuffle([...QUESTIONS[year]]);
+  state.currentQ = 0; state.score = 0; state.correct = 0;
+  state.wrong = 0; state.streak = 0; state.maxStreak = 0;
+  state.answered = false;
+
+  const avEmoji = getAvatarEmoji(state.avatar);
+  const avSm = document.getElementById('quiz-avatar-sm');
+  avSm.textContent = avEmoji;
+  avSm.className = 'quiz-avatar-sm' + (state.avatar === 'dev' ? ' dev' : '');
+  document.getElementById('quiz-player-name').textContent = state.nickname;
+  document.getElementById('q-year-badge').textContent = year;
+
+  showScreen('screen-quiz');
+  renderQuestion();
+};
+
+// ── RENDER QUESTION ──
+function renderQuestion() {
+  const q = state.questions[state.currentQ];
+  const total = state.questions.length;
+  const idx = state.currentQ + 1;
+
+  document.getElementById('q-topic').textContent = q.topic;
+  document.getElementById('q-counter').textContent = `Q ${String(idx).padStart(2,'0')} / ${total}`;
+  document.getElementById('q-text').textContent = q.q;
+  document.getElementById('progress-fill').style.width = ((idx - 1) / total * 100) + '%';
+  document.getElementById('quiz-score').textContent = state.score;
+  document.getElementById('quiz-streak').textContent = state.streak;
+
+  const keys = ['A','B','C','D'];
+  const list = document.getElementById('options-list');
+  list.innerHTML = '';
+  q.opts.forEach((opt, i) => {
+    const btn = document.createElement('button');
+    btn.className = 'option-btn';
+    btn.innerHTML = `<span class="option-key">${keys[i]}</span><span>${opt}</span>`;
+    btn.onclick = () => selectAnswer(i);
+    list.appendChild(btn);
+  });
+
+  const fb = document.getElementById('feedback-bar');
+  fb.className = 'feedback-bar';
+  document.getElementById('next-wrap').classList.remove('show');
+  state.answered = false;
+}
+
+// ── SELECT ANSWER ──
+function selectAnswer(chosen) {
+  if (state.answered) return;
+  state.answered = true;
+
+  const q = state.questions[state.currentQ];
+  const btns = document.querySelectorAll('.option-btn');
+  btns.forEach(b => b.disabled = true);
+
+  const isCorrect = chosen === q.ans;
+  btns[chosen].classList.add(isCorrect ? 'correct' : 'wrong');
+  if (!isCorrect) btns[q.ans].classList.add('correct');
+
+  const fb = document.getElementById('feedback-bar');
+  const icon = document.getElementById('feedback-icon');
+  const text = document.getElementById('feedback-text');
+
+  if (isCorrect) {
+    state.score++;
+    state.correct++;
+    state.streak++;
+    if (state.streak > state.maxStreak) state.maxStreak = state.streak;
+    fb.className = 'feedback-bar correct show';
+    icon.textContent = '✅';
+    text.innerHTML = `<strong>Correct!</strong> ${q.exp}`;
+    if (state.streak >= 3) triggerStreakPopup();
+  } else {
+    state.wrong++;
+    state.streak = 0;
+    fb.className = 'feedback-bar wrong show';
+    icon.textContent = '❌';
+    text.innerHTML = `<strong>Incorrect.</strong> Correct answer: ${q.opts[q.ans]}. ${q.exp}`;
+  }
+
+  document.getElementById('next-wrap').classList.add('show');
+}
+
+// ── NEXT QUESTION ──
+window.nextQuestion = function() {
+  state.currentQ++;
+  if (state.currentQ >= state.questions.length) {
+    endQuiz();
+  } else {
+    renderQuestion();
+  }
+};
+
+// ── END QUIZ ──
+function endQuiz() {
+  const total = state.questions.length;
+  const pct = Math.round(state.score / total * 100);
+
+  const grade = pct >= 80 ? 'DISTINCTION 🏆' : pct >= 60 ? 'CREDIT 🎖' : pct >= 50 ? 'PASS ✅' : 'KEEP STUDYING 📚';
+
+  document.getElementById('result-avatar').textContent = getAvatarEmoji(state.avatar);
+  document.getElementById('result-avatar').className = 'result-avatar' + (state.avatar === 'dev' ? ' dev' : '');
+  document.getElementById('result-name').textContent = state.nickname;
+  document.getElementById('result-grade').textContent = grade;
+  document.getElementById('res-correct').textContent = state.correct;
+  document.getElementById('res-wrong').textContent = state.wrong;
+  document.getElementById('res-streak').textContent = state.maxStreak;
+  document.getElementById('res-year').textContent = state.selectedYear;
+  document.getElementById('ring-pct').textContent = pct + '%';
+
+  showScreen('screen-results');
+
+  setTimeout(() => {
+    const circumference = 2 * Math.PI * 65;
+    const offset = circumference - (pct / 100 * circumference);
+    document.getElementById('ring-fill').style.strokeDashoffset = offset;
+  }, 300);
+
+  saveScore(pct);
+}
+
+// ── SAVE SCORE ──
+async function saveScore(pct) {
+  try {
+    const scoresRef = ref(db, 'dcit101_scores');
+    await push(scoresRef, {
+      nickname: state.nickname,
+      avatar: state.avatar,
+      score: state.score,
+      total: state.questions.length,
+      percentage: pct,
+      maxStreak: state.maxStreak,
+      yearCategory: state.selectedYear,
+      timestamp: Date.now()
+    });
+    showToast('✅ Score saved to leaderboard!', 'success');
+  } catch (e) {
+    showToast('⚠️ Could not save score.', 'error');
+    console.error(e);
+  }
+}
+
+// ── LEADERBOARD ──
+window.showLeaderboard = function() {
+  state.prevScreen = document.querySelector('.screen.active').id;
+  document.getElementById('lb-back-btn').onclick = () => showScreen(state.prevScreen);
+  showScreen('screen-leaderboard');
+
+  const list = document.getElementById('lb-list');
+  list.innerHTML = '<div class="lb-empty"><div class="spinner"></div><p>Loading scores...</p></div>';
+
+  const scoresRef = ref(db, 'dcit101_scores');
+  onValue(scoresRef, (snapshot) => {
+    const data = snapshot.val();
+    if (!data) {
+      list.innerHTML = '<div class="lb-empty">No scores yet. Be the first! 🚀</div>';
+      return;
+    }
+    const entries = Object.values(data).sort((a, b) => b.score - a.score || b.percentage - a.percentage);
+    list.innerHTML = '';
+    entries.forEach((entry, i) => {
+      const rankClass = i === 0 ? 'r1' : i === 1 ? 'r2' : i === 2 ? 'r3' : 'other';
+      const rankSymbol = i === 0 ? '🥇' : i === 1 ? '🥈' : i === 2 ? '🥉' : `#${i+1}`;
+      const row = document.createElement('div');
+      row.className = 'lb-row';
+      row.innerHTML = `
+        <span class="lb-rank ${rankClass}">${rankSymbol}</span>
+        <span class="lb-avatar">${getAvatarEmoji(entry.avatar)}</span>
+        <div class="lb-info">
+          <div class="lb-name">${entry.nickname}</div>
+          <div class="lb-detail">🔥 Streak: ${entry.maxStreak || 0}</div>
+        </div>
+        <span class="lb-year">${entry.yearCategory}</span>
+        <span class="lb-score">${entry.score}/${entry.total || 20}</span>
+      `;
+      list.appendChild(row);
+    });
+  }, { onlyOnce: true });
+};
+
+// ── STREAK POPUP ──
+function triggerStreakPopup() {
+  const popup = document.getElementById('streak-popup');
+  document.getElementById('streak-popup-num').textContent = state.streak;
+  popup.style.display = 'block';
+  void popup.offsetWidth;
+  setTimeout(() => { popup.style.display = 'none'; }, 2000);
+}
+
+// ── TOAST ──
+function showToast(msg, type = '') {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.className = 'toast ' + type + ' show';
+  setTimeout(() => { t.classList.remove('show'); }, 3000);
+}
+
+// ── UTILITY ──
+function shuffle(arr) {
+  for (let i = arr.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [arr[i], arr[j]] = [arr[j], arr[i]];
+  }
+  return arr;
+}
+
+window.quitQuiz = function() { showScreen('screen-year'); };
+window.playAgain = function() { showScreen('screen-year'); };
+</script>
+</body>
+</html>
