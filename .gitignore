@@ -1,0 +1,27 @@
+# --- NEXUS SECURITY ---
+# Never upload your actual API keys
+config.js
+.env
+secret.json
+
+# --- SYSTEM FILES ---
+# Ignore OS-specific metadata
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# --- DEPENDENCIES ---
+# If you ever use 'npm install', this folder gets huge; don't upload it
+node_modules/
+jspm_packages/
+
+# --- BUILD OUTPUTS ---
+# If you use a bundler like Vite or Webpack later
+dist/
+build/
+.cache/
+
+# --- LOGS ---
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
