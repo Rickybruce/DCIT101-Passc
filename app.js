@@ -415,13 +415,37 @@ function commitScenarioAnswer(chosen, q, optBtns, feedback, idx) {
 }
 
 window.finishScenario = function () {
-  showScreen("screen-year");
   const total = SCENARIO_QUESTIONS.length;
+  const pct   = Math.round(state.scCorrect / total * 100);
+  saveScenarioScore(pct, total);          // ← persist to leaderboard
+  showScreen("screen-year");
   showToast(
     `Scenario Cases complete! ${state.scCorrect}/${total} correct.`,
     state.scCorrect >= total * 0.6 ? "success" : "warn"
   );
 };
+
+/** Saves a Scenario Cases result with yearCategory = "Scenario Cases" */
+async function saveScenarioScore(pct, total) {
+  try {
+    await push(ref(db, "dcit101_scores"), {
+      nickname:     state.nickname,
+      displayName:  state.displayName,
+      avatar:       state.avatar,
+      isElite:      state.isElite,
+      score:        state.scCorrect,
+      total:        total,
+      percentage:   pct,
+      maxStreak:    0,
+      yearCategory: "Scenario Cases",
+      timestamp:    Date.now(),
+    });
+    showToast("✅ Scenario score saved to leaderboard!", "success");
+  } catch (e) {
+    showToast("⚠️ Could not save score.", "error");
+    console.error("Firebase save error (scenario):", e);
+  }
+}
 
 window.backFromScenario = function () { showScreen("screen-year"); };
 
@@ -626,44 +650,91 @@ async function saveScore(pct) {
 /* ─────────────────────────────────────────────
    LEADERBOARD
 ───────────────────────────────────────────── */
+
+/** Cached Firebase snapshot — shared between showLeaderboard & filter clicks */
+let _lbAllData = null;
+
 window.showLeaderboard = function () {
   state.prevScreen = document.querySelector(".screen.active")?.id || "screen-year";
   document.getElementById("lb-back-btn").onclick = () => showScreen(state.prevScreen);
   showScreen("screen-leaderboard");
 
+  // ── Wire filter pills (once per session via _wired flag) ──
+  const filtersEl = document.getElementById("lb-filters");
+  if (filtersEl && !filtersEl._wired) {
+    filtersEl._wired = true;
+    filtersEl.addEventListener("click", e => {
+      const btn = e.target.closest(".lb-filter-btn");
+      if (!btn) return;
+      filtersEl.querySelectorAll(".lb-filter-btn").forEach(b => b.classList.remove("active"));
+      btn.classList.add("active");
+      if (_lbAllData !== undefined) renderLbEntries(_lbAllData, btn.dataset.cat);
+    });
+  }
+
+  // ── Reset to ALL tab on every open ──
+  if (filtersEl) {
+    filtersEl.querySelectorAll(".lb-filter-btn").forEach(b => b.classList.remove("active"));
+    const allBtn = filtersEl.querySelector('[data-cat="all"]');
+    if (allBtn) allBtn.classList.add("active");
+  }
+
   const list = document.getElementById("lb-list");
   list.innerHTML = '<div class="lb-empty"><div class="spinner"></div><p>Loading scores…</p></div>';
 
   onValue(ref(db, "dcit101_scores"), snapshot => {
-    const data = snapshot.val();
-    if (!data) {
-      list.innerHTML = '<div class="lb-empty">No scores yet. Be the first! 🚀</div>';
-      return;
-    }
-    const entries = Object.values(data)
-      .sort((a, b) => b.score - a.score || b.percentage - a.percentage);
-
-    list.innerHTML = "";
-    entries.forEach((entry, i) => {
-      const rankClass  = i === 0 ? "r1" : i === 1 ? "r2" : i === 2 ? "r3" : "other";
-      const rankSymbol = i === 0 ? "🥇" : i === 1 ? "🥈" : i === 2 ? "🥉" : `#${i + 1}`;
-      const isEliteRow = entry.isElite;
-      const row        = document.createElement("div");
-      row.className    = "lb-row" + (isEliteRow ? " elite-row" : "");
-      row.innerHTML    = `
-        <span class="lb-rank ${rankClass}">${rankSymbol}</span>
-        <span class="lb-avatar">${getAvatarEmoji(entry.avatar)}</span>
-        <div class="lb-info">
-          <div class="lb-name${isEliteRow ? " elite-name" : ""}">${entry.displayName || entry.nickname}</div>
-          <div class="lb-detail">🔥 Streak: ${entry.maxStreak || 0}</div>
-        </div>
-        <span class="lb-year">${entry.yearCategory}</span>
-        <span class="lb-score">${entry.score}/${entry.total || 20}</span>
-      `;
-      list.appendChild(row);
-    });
+    _lbAllData = snapshot.val();
+    renderLbEntries(_lbAllData, "all");
   }, { onlyOnce: true });
 };
+
+/**
+ * Renders leaderboard rows, optionally filtered by category.
+ * @param {Object|null} data  — raw Firebase snapshot value
+ * @param {string}      filter — "all" | "2021" | "2022" | "2023" | "Scenario Cases" | "SpeedQuiz"
+ */
+function renderLbEntries(data, filter) {
+  const list = document.getElementById("lb-list");
+
+  if (!data) {
+    list.innerHTML = '<div class="lb-empty">No scores yet. Be the first! 🚀</div>';
+    return;
+  }
+
+  let entries = Object.values(data);
+
+  // Apply category filter
+  if (filter && filter !== "all") {
+    entries = entries.filter(e => String(e.yearCategory) === String(filter));
+  }
+
+  entries.sort((a, b) => b.score - a.score || b.percentage - a.percentage);
+
+  if (entries.length === 0) {
+    list.innerHTML = '<div class="lb-empty">No scores in this category yet. 🚀</div>';
+    return;
+  }
+
+  list.innerHTML = "";
+  entries.forEach((entry, i) => {
+    const rankClass  = i === 0 ? "r1" : i === 1 ? "r2" : i === 2 ? "r3" : "other";
+    const rankSymbol = i === 0 ? "🥇" : i === 1 ? "🥈" : i === 2 ? "🥉" : `#${i + 1}`;
+    const isEliteRow = entry.isElite;
+    const row        = document.createElement("div");
+    row.className    = "lb-row" + (isEliteRow ? " elite-row" : "");
+    row.innerHTML    = `
+      <span class="lb-rank ${rankClass}">${rankSymbol}</span>
+      <span class="lb-avatar">${getAvatarEmoji(entry.avatar)}</span>
+      <div class="lb-info">
+        <div class="lb-name${isEliteRow ? " elite-name" : ""}">${entry.displayName || entry.nickname}</div>
+        <div class="lb-detail">🔥 Streak: ${entry.maxStreak || 0}</div>
+      </div>
+      <span class="lb-year">${entry.yearCategory}</span>
+      <span class="lb-score">${entry.score}/${entry.total || 20}</span>
+    `;
+    list.appendChild(row);
+  });
+}
 
 /* ─────────────────────────────────────────────
    STREAK POPUP
