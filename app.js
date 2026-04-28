@@ -22,7 +22,7 @@ const db  = getDatabase(app);
 /** Nicknames that unlock Elite gold-glow status */
 const ELITE_NAMES = [
   "dii", "naa naa", "away", "nhyira", "kylie",
-  "wagwan", "jesse", "bongolokwekwe", "chantelle", "suabira"
+  "wagwan", "jesse", "bongolokwekwe", "chantelle", "suabira", "isis"
 ];
 
 /** Elite emoji badge appended to display name */
