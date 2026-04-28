@@ -276,17 +276,8 @@ function startCountdown() {
    DIAGRAM / SCENARIO LOCK HANDLER
    Keeps Scenario Cases locked and shows alert/toast
 ───────────────────────────────────────────── */
-window.triggerDiagramLock = function () {
-  const el = document.getElementById("diagram-alert");
-  if (!el) {
-    showToast("This section is currently restricted.", "error");
-    return;
-  }
-  el.classList.add("show");
-  try { el.scrollIntoView({ behavior: "smooth", block: "center" }); } catch (e) {}
-  clearTimeout(el._t);
-  el._t = setTimeout(() => el.classList.remove("show"), 4000);
-  showToast("🚫 Scenario Cases are restricted.", "error");
+window.goToScenarios = function () {
+  window.location.href = 'scenarios.html';
 };
 
 /* ─────────────────────────────────────────────
