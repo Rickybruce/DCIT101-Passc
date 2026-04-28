@@ -228,7 +228,7 @@ window.startSetup = function () {
 
   state.nickname    = nick;
   state.isElite     = isEliteName(nick);
-  state.isRicky     = nick.toLowerCase() === "ricky";
+  state.isRicky     = nick.toLowerCase() === "R.B.A";
   state.displayName = state.isElite ? `${nick} ${ELITE_EMOJI}` : nick;
 
   showScreen("screen-year");
@@ -277,9 +277,8 @@ function startCountdown() {
    Keeps Scenario Cases locked and shows alert/toast
 ───────────────────────────────────────────── */
 window.goToScenarios = function () {
-  window.location.href = 'scenarios.html';
+  showToast("📋 Scenario Cases coming soon!", "warn");
 };
-
 /* ─────────────────────────────────────────────
    SCENARIO CASES — Scrollable document mode
 ───────────────────────────────────────────── */
