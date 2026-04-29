@@ -455,6 +455,9 @@ window.backFromScenario = function () { showScreen("screen-year"); };
    REGULAR QUIZ — Start
 ───────────────────────────────────────────── */
 window.startQuiz = function (year) {
+   if (year === '2024') {
+    showToast("🔒 2024 Past Questions are currently locked.", "warn");
+    return;
   state.selectedYear = year;
   state.questions    = shuffle([...QUESTIONS[year]]);
   state.currentQ     = 0;
