@@ -186,7 +186,7 @@ window.handleOverlayClick = function (e) {
 ───────────────────────────────────────────── */
 document.getElementById("nickname").addEventListener("input", function () {
   const val     = this.value.trim();
-  const isRicky = val.toLowerCase() === "ricky";
+  const isRicky = val.toLowerCase() === "R.B.A";
   const isElite = isEliteName(val);
 
   state.isRicky = isRicky;
@@ -432,9 +432,9 @@ async function saveScenarioScore(pct, total) {
     });
     showToast("✅ Scenario score saved to leaderboard!", "success");
   } catch (e) {
-    showToast("⚠️ Could not save score.", "error");
-    console.error("Firebase save error (scenario):", e);
-  }
+  showToast(`⚠️ Save failed: ${e.message || "Unknown error"}`, "error");
+  console.error("Firebase save error:", e);
+}
 }
 
 window.backFromScenario = function () { showScreen("screen-year"); };
