@@ -1832,8 +1832,7 @@ const QUESTIONS = {
     opts: ["Automatically configure new hardware", "Play games without installation", "Connect to the internet without a modem", "Use a computer without an OS"], 
     ans: 0, 
     exp: "Plug and Play (PnP) allows the OS to automatically detect, configure, and install drivers for new hardware without manual setup." 
-  } // [cite: 111]
-];
+ } // [cite: 111]
   ],
 
   2022: [
