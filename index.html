@@ -127,10 +127,7 @@
         </div>
       </div>
 
-      <!-- Bottom row: FIX 4 — Scenario Cases card was missing (only Diagram was there).
-           Diagram Challenge renamed to Scenario Cases per task requirements.
-           Scenario Cases now calls openScenarioCases() instead of showing a locked alert. -->
-     <!-- Row 2: 2024 + IA -->
+      
       <div class="year-grid">
         <div class="glass year-card locked"> 
   <div class="year-header">
@@ -158,19 +155,6 @@
           <span class="year-count" style="color:var(--purple)">Coming Soon</span>
         </div>
       </div>
-
-      <!-- FIX 5: diagram-alert kept in DOM — triggerDiagramLock() still references it.
-           The element is hidden by default and only shows if called programmatically. -->
-     <!--
-             <div class="locked-alert" id="diagram-alert">
-        <div class="locked-alert-icon">🚫</div>
-        <div class="locked-alert-title">SYSTEM RESTRICTED</div>
-        <div class="locked-alert-msg">
-          This section is currently locked.<br>
-          Please check back later.
-        </div>
-      </div>
-     -->
          
 
       <!-- Nexus countdown -->
@@ -207,13 +191,7 @@
   </div>
 
 
-  <!-- ══════════════════════════════════════════════════════
-       SCREEN 3: SCENARIO CASES
-       FIX 6 — This ENTIRE screen was missing from the HTML.
-       app.js calls showScreen("screen-scenario") and writes
-       into ids: scenario-paper-body, sc-live-score,
-       sc-live-correct, sc-live-wrong — all were absent.
-  ══════════════════════════════════════════════════════ -->
+ 
   <div class="screen" id="screen-scenario">
 
     <div class="scenario-header">
@@ -420,57 +398,7 @@
  PRODUCT OF <span>RICKY BRUCE AMISSAH</span>
 </div>
 
-<!--
-  ╔══════════════════════════════════════════════════════╗
-  ║            HOW TO HIDE YOUR API KEY                 ║
-  ║                                                      ║
-  ║  Your Firebase key lives in config.js. Below are    ║
-  ║  the 5 layers of protection you should apply:       ║
-  ║                                                      ║
-  ║  LAYER 1 — .gitignore  (do this RIGHT NOW)          ║
-  ║    Add "config.js" to your .gitignore file.         ║
-  ║    This stops the key ever being pushed to GitHub.  ║
-  ║    Provide a "config.js.example" with blank values  ║
-  ║    so other developers know what fields to fill in. ║
-  ║                                                      ║
-  ║  LAYER 2 — Firebase HTTP Referrer Restrictions      ║
-  ║    Firebase Console → Project Settings → API        ║
-  ║    Restrictions. Add your exact domain e.g.         ║
-  ║    https://yourdomain.com/* so the key is rejected  ║
-  ║    if used from any other website.                  ║
-  ║                                                      ║
-  ║  LAYER 3 — Firebase Realtime Database Rules         ║
-  ║    Set rules so only valid writes are accepted.     ║
-  ║    Example — public read, no unauthenticated write: ║
-  ║    {                                                 ║
-  ║      "rules": {                                      ║
-  ║        ".read": true,                                ║
-  ║        ".write": "auth != null"                      ║
-  ║      }                                               ║
-  ║    }                                                 ║
-  ║    Even if someone steals your key they cannot      ║
-  ║    spam your database without being authenticated.  ║
-  ║                                                      ║
-  ║  LAYER 4 — Firebase App Check  (recommended)        ║
-  ║    Ties your project to your domain using            ║
-  ║    reCAPTCHA v3. Requests from unknown origins are  ║
-  ║    blocked server-side by Firebase automatically.   ║
-  ║    Enable it: Firebase Console → App Check.         ║
-  ║                                                      ║
-  ║  LAYER 5 — Backend Proxy  (most secure)             ║
-  ║    Move all Firebase calls into a server function   ║
-  ║    (Node.js / Firebase Cloud Functions). The        ║
-  ║    browser never receives the key at all. Client    ║
-  ║    calls your API endpoint; your server calls       ║
-  ║    Firebase with the key stored as an env variable. ║
-  ║                                                      ║
-  ║  For a student project: Layers 1 + 2 + 3 are       ║
-  ║  sufficient and take less than 10 minutes to set up.║
-  ╚══════════════════════════════════════════════════════╝
--->
 
-<!-- FIX 10: app.js linked as type="module" so ES import statements work.
-     config.js must sit in the same folder as index.html and app.js. -->
 <script type="module" src="app.js"></script>
 
 </body>
