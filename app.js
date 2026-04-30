@@ -3,8 +3,7 @@
    ═══════════════════════════════════════════════ */
 
 import { initializeApp }                    from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-import { getDatabase, ref, push, onValue }  from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
-
+import { getDatabase, ref, push, onValue, query, orderByChild, equalTo, get } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
 /* ─────────────────────────────────────────────
    FIREBASE INITIALISATION
    API key is loaded from config.js (not committed
@@ -289,6 +288,36 @@ function startCountdown() {
 /* ─────────────────────────────────────────────
    SCENARIO CASES — Scrollable document mode
 ───────────────────────────────────────────── */
+/* ─────────────────────────────────────────────
+   SCENARIO PROGRESS PERSISTENCE
+   Key: nexus_sc_progress
+───────────────────────────────────────────── */
+const SC_PROGRESS_KEY = "nexus_sc_progress";
+
+function saveScenarioProgress(questionIdx, answersMap) {
+  try {
+    localStorage.setItem(SC_PROGRESS_KEY, JSON.stringify({
+      questionIdx,
+      answersMap,          // { "0": chosen, "3": chosen, … }
+      scScore:   state.scScore,
+      scCorrect: state.scCorrect,
+      scWrong:   state.scWrong,
+      savedAt:   Date.now(),
+    }));
+  } catch(e) {}
+}
+
+function loadScenarioProgress() {
+  try {
+    const raw = localStorage.getItem(SC_PROGRESS_KEY);
+    return raw ? JSON.parse(raw) : null;
+  } catch(e) { return null; }
+}
+
+function clearScenarioProgress() {
+  try { localStorage.removeItem(SC_PROGRESS_KEY); } catch(e) {}
+}
+
 window.openScenarioCases = function () {
   state.scScore = 0; state.scCorrect = 0; state.scWrong = 0;
   renderScenarioPaper();
@@ -310,13 +339,38 @@ function renderScenarioPaper() {
   if (!container) return;
   container.innerHTML = "";
 
+  // ── Profile header ──────────────────────────────────
+  const profileBar = document.createElement("div");
+  profileBar.className = "sc-profile-bar";
+  profileBar.innerHTML = `
+    <div class="sc-profile-user">
+      <span class="sc-profile-avatar">${getAvatarEmoji(state.avatar)}</span>
+      <span class="sc-profile-name">${state.displayName || "Agent"}</span>
+    </div>
+    <button class="btn btn-ghost btn-sm" onclick="showScreen('screen-year')">← Back to Arena</button>
+  `;
+  container.appendChild(profileBar);
+
+  // ── Load any saved progress ──────────────────────────
+  const saved = loadScenarioProgress();
+  const answersMap = (saved && saved.answersMap) ? saved.answersMap : {};
+
+  // Restore score counters from saved state
+  if (saved) {
+    state.scScore   = saved.scScore   || 0;
+    state.scCorrect = saved.scCorrect || 0;
+    state.scWrong   = saved.scWrong   || 0;
+    updateScenarioScoreBar();
+  }
+
+  // ── Render questions ─────────────────────────────────
   SCENARIO_QUESTIONS.forEach((q, idx) => {
     const keys    = ["A","B","C","D","E"];
-    let   pending = null;  // track single-click pending option per question
+    let   pending = null;
 
-    // ── Item wrapper
     const item = document.createElement("div");
-    item.className = "sc-item";
+    item.className  = "sc-item";
+    item.id         = `sc-item-${idx}`;
 
     // ── Header
     const header = document.createElement("div");
@@ -333,43 +387,52 @@ function renderScenarioPaper() {
     qText.textContent = q.q;
     item.appendChild(qText);
 
+    // ── Guard: skip if opts is missing or empty
+    if (!Array.isArray(q.opts) || q.opts.length === 0) {
+      const warn = document.createElement("p");
+      warn.style.cssText = "color:var(--text-dim);font-size:12px;font-family:'JetBrains Mono',monospace;";
+      warn.textContent = "⚠️ No options available for this question.";
+      item.appendChild(warn);
+      container.appendChild(item);
+      return; // skip to next question
+    }
+
     // ── Options
     const optList = document.createElement("div");
     optList.className = "sc-options";
-
     const optBtns = [];
+    const feedback = document.createElement("div");
+    feedback.className = "sc-feedback";
 
     q.opts.forEach((opt, oi) => {
       const btn = document.createElement("div");
       btn.className = "sc-opt";
       btn.setAttribute("role", "button");
       btn.setAttribute("tabindex", "0");
+
+      // Sanitise: ensure opt is a non-empty string
+      const label = (opt !== undefined && opt !== null && String(opt).trim() !== "")
+        ? String(opt)
+        : `Option ${keys[oi] || oi + 1}`;
+
       btn.innerHTML = `
         <span class="sc-opt-key">${keys[oi] || oi + 1}</span>
-        <span>${opt}</span>
-        <span class="dbl-hint">↩ double-click to confirm</span>
+        <span class="sc-opt-text">${label}</span>
+        <span class="dbl-hint">↩ dbl-click to lock</span>
       `;
 
-      // ── SINGLE CLICK — set pending, clear other pending
+      // ── Single click — highlight as pending
       btn.addEventListener("click", () => {
         if (btn.getAttribute("data-locked")) return;
-
-        // Clear previous pending in this question
         optBtns.forEach(b => b.classList.remove("pending"));
-
-        if (pending === oi) {
-          // Already pending, single click again — do NOT select; wait for dbl
-          btn.classList.add("pending");
-        } else {
-          pending = oi;
-          btn.classList.add("pending");
-        }
+        pending = oi;
+        btn.classList.add("pending");
       });
 
-      // ── DOUBLE CLICK — finalise selection
+      // ── Double click — lock answer
       btn.addEventListener("dblclick", () => {
         if (btn.getAttribute("data-locked")) return;
-        commitScenarioAnswer(oi, q, optBtns, feedback, idx);
+        commitScenarioAnswer(oi, q, optBtns, feedback, idx, answersMap);
         pending = null;
       });
 
@@ -378,18 +441,30 @@ function renderScenarioPaper() {
     });
 
     item.appendChild(optList);
-
-    // ── Feedback
-    const feedback = document.createElement("div");
-    feedback.className = "sc-feedback";
     item.appendChild(feedback);
-
     container.appendChild(item);
-  });
-}
 
-function commitScenarioAnswer(chosen, q, optBtns, feedback, idx) {
-  // Lock all options in this question
+    // ── Restore previously saved answer for this question ──
+    if (answersMap[String(idx)] !== undefined) {
+      const savedChoice = answersMap[String(idx)];
+      // Replay commit silently (no score increment since counters already restored)
+      restoreScenarioAnswer(savedChoice, q, optBtns, feedback);
+    }
+  });
+
+  // ── Scroll to first unanswered question if resuming ──
+  if (saved && Object.keys(answersMap).length > 0) {
+    const firstUnanswered = SCENARIO_QUESTIONS.findIndex((_, i) => answersMap[String(i)] === undefined);
+    const targetId = firstUnanswered >= 0 ? `sc-item-${firstUnanswered}` : `sc-item-${SCENARIO_QUESTIONS.length - 1}`;
+    setTimeout(() => {
+      const el = document.getElementById(targetId);
+      if (el) el.scrollIntoView({ behavior: "smooth", block: "center" });
+    }, 350);
+    showToast(`▶ Session restored — ${Object.keys(answersMap).length} answered`, "info");
+  }
+}
+function commitScenarioAnswer(chosen, q, optBtns, feedback, idx, answersMap) {
+  // Lock all options for this question
   optBtns.forEach(b => {
     b.setAttribute("data-locked", "true");
     b.classList.remove("pending");
@@ -397,7 +472,7 @@ function commitScenarioAnswer(chosen, q, optBtns, feedback, idx) {
 
   const isCorrect = chosen === q.ans;
 
-  optBtns[chosen].classList.add(isCorrect ? "correct" : "wrong");
+  if (optBtns[chosen]) optBtns[chosen].classList.add(isCorrect ? "correct" : "wrong");
   if (!isCorrect && optBtns[q.ans]) optBtns[q.ans].classList.add("correct");
 
   if (isCorrect) { state.scScore++; state.scCorrect++; }
@@ -409,12 +484,35 @@ function commitScenarioAnswer(chosen, q, optBtns, feedback, idx) {
     : `❌ <strong>Incorrect.</strong> Correct: <strong>${q.opts[q.ans]}</strong>. ${q.exp}`;
 
   updateScenarioScoreBar();
+
+  // ── Persist progress immediately ──
+  if (answersMap) answersMap[String(idx)] = chosen;
+  saveScenarioProgress(idx, answersMap || {});
+}
+
+/** Silently re-apply a previously saved answer (no score changes) */
+function restoreScenarioAnswer(chosen, q, optBtns, feedback) {
+  optBtns.forEach(b => {
+    b.setAttribute("data-locked", "true");
+    b.classList.remove("pending");
+  });
+
+  const isCorrect = chosen === q.ans;
+  if (optBtns[chosen]) optBtns[chosen].classList.add(isCorrect ? "correct" : "wrong");
+  if (!isCorrect && optBtns[q.ans]) optBtns[q.ans].classList.add("correct");
+
+  feedback.className = `sc-feedback ${isCorrect ? "correct" : "wrong"} show`;
+  feedback.innerHTML = isCorrect
+    ? `✅ <strong>Correct!</strong> ${q.exp}`
+    : `❌ <strong>Incorrect.</strong> Correct: <strong>${q.opts[q.ans]}</strong>. ${q.exp}`;
 }
 
 window.finishScenario = function () {
   const total = SCENARIO_QUESTIONS.length;
   const pct   = Math.round(state.scCorrect / total * 100);
-  saveScenarioScore(pct, total);          // ← persist to leaderboard
+
+  clearScenarioProgress();  // ← wipe saved progress on intentional finish
+  saveScenarioScore(pct, total);
   showScreen("screen-year");
   showToast(
     `Scenario Cases complete! ${state.scCorrect}/${total} correct.`,
@@ -422,9 +520,36 @@ window.finishScenario = function () {
   );
 };
 
-/** Saves a Scenario Cases result with yearCategory = "Scenario Cases" */
+/**
+ * Saves a Scenario Cases result with yearCategory = "Scenario Cases".
+ * FIRST-ATTEMPT ONLY: checks Firebase before writing. If an entry already
+ * exists for this nickname + "Scenario Cases", we skip the write and toast.
+ */
 async function saveScenarioScore(pct, total) {
   try {
+    // ── First-attempt check ──────────────────────────────
+    const scoresRef = ref(db, "dcit101_scores");
+    const existingQuery = query(
+      scoresRef,
+      orderByChild("nickname"),
+      equalTo(state.nickname)
+    );
+    const snapshot = await get(existingQuery);
+
+    if (snapshot.exists()) {
+      // Check if any existing entry is for Scenario Cases
+      const entries = Object.values(snapshot.val());
+      const alreadyPlayed = entries.some(e => e.yearCategory === "Scenario Cases");
+      if (alreadyPlayed) {
+        showToast(
+          "Practice complete! Note: Only your first attempt is recorded on the leaderboard.",
+          "warn"
+        );
+        return; // ← do NOT write a second entry
+      }
+    }
+
+    // ── No prior entry found — save this attempt ─────────
     await push(ref(db, "dcit101_scores"), {
       nickname:     state.nickname,
       displayName:  state.displayName,
@@ -438,10 +563,11 @@ async function saveScenarioScore(pct, total) {
       timestamp:    Date.now(),
     });
     showToast("✅ Scenario score saved to leaderboard!", "success");
+
   } catch (e) {
-  showToast(`⚠️ Save failed: ${e.message || "Unknown error"}`, "error");
-  console.error("Firebase save error:", e);
-}
+    showToast(`⚠️ Save failed: ${e.message || "Unknown error"}`, "error");
+    console.error("Firebase save error (scenario):", e);
+  }
 }
 
 window.backFromScenario = function () { showScreen("screen-year"); };
@@ -639,6 +765,27 @@ function endQuiz() {
 ───────────────────────────────────────────── */
 async function saveScore(pct) {
   try {
+    // ── First-attempt check ──────────────────────────────
+    const existingQuery = query(
+      ref(db, "dcit101_scores"),
+      orderByChild("nickname"),
+      equalTo(state.nickname)
+    );
+    const snapshot = await get(existingQuery);
+
+    if (snapshot.exists()) {
+      const entries = Object.values(snapshot.val());
+      const alreadyPlayed = entries.some(e => String(e.yearCategory) === String(state.selectedYear));
+      if (alreadyPlayed) {
+        showToast(
+          "Practice complete! Note: Only your first attempt is recorded on the leaderboard.",
+          "warn"
+        );
+        return;
+      }
+    }
+
+    // ── First attempt — write it ─────────────────────────
     await push(ref(db, "dcit101_scores"), {
       nickname:     state.nickname,
       displayName:  state.displayName,
@@ -652,6 +799,7 @@ async function saveScore(pct) {
       timestamp:    Date.now(),
     });
     showToast("✅ Score saved to leaderboard!", "success");
+
   } catch (e) {
     showToast("⚠️ Could not save score.", "error");
     console.error("Firebase save error:", e);
