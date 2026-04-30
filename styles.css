@@ -914,6 +914,25 @@ body::before {
   transition: transform 1s linear;
 }
 
+/* ── SCENARIO PROFILE BAR ── */
+.sc-profile-bar {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 12px 18px; margin-bottom: 20px;
+  background: var(--glass);
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius-sm);
+  backdrop-filter: var(--blur); -webkit-backdrop-filter: var(--blur);
+}
+.sc-profile-user { display: flex; align-items: center; gap: 10px; }
+.sc-profile-avatar { font-size: 24px; }
+.sc-profile-name {
+  font-family: 'Orbitron', sans-serif; font-size: 12px; font-weight: 700;
+  color: var(--cyan); letter-spacing: 1.5px;
+}
+
+/* ── sc-opt-text ensures option text is always visible ── */
+.sc-opt-text { flex: 1; font-size: 14px; word-break: break-word; }
+
 /* ── RESPONSIVE ── */
 @media (max-width: 600px) {
   .q-card       { padding: 20px; }
