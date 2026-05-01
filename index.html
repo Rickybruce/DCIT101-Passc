@@ -106,9 +106,9 @@
           to confirm your selection. This prevents accidental submissions.
         </div>
       </div>
-    <div class="glass" style="padding:32px;">
+<div class="glass" style="padding:32px;">
 
-      <!-- Top row: 3 active year cards -->
+      <!-- Row 1: 2021 · 2022 · 2023 -->
       <div class="year-grid">
         <div class="year-card" onclick="startQuiz(2022)">
           <span class="year-num">2022</span>
@@ -127,18 +127,14 @@
         </div>
       </div>
 
-      
-      <div class="year-grid">
-        <div class="glass year-card locked"> 
-  <div class="year-header">
-    <div class="year-val">2024</div>
-    <button class="year-btn" disabled>LOCKED</button>
-  </div>
-  <div class="year-body">
-    <span class="year-sub">Access Restricted</span>
-    <span class="year-count">Coming Soon</span>
-  </div>
-</div>
+      <!-- Row 2: 2024 (locked) · IA -->
+      <div class="year-grid-2">
+        <div class="year-card locked">
+          <div class="year-val">2024</div>
+          <span class="year-sub">Access Restricted</span>
+          <span class="year-count">Coming Soon</span>
+          <button class="year-btn" disabled>🔒 LOCKED</button>
+        </div>
         <div class="year-card ia" onclick="startQuiz('IA')">
           <span class="year-lock-icon">⚡</span>
           <span class="year-num">IA</span>
@@ -147,15 +143,21 @@
         </div>
       </div>
 
-      <!-- Row 3: Scenario + Speed -->
+      <!-- Row 3: Scenario Cases · Nexus Speed Test -->
+      <div class="year-grid-2">
+        <div class="year-card locked">
+          <div class="year-val">Scenario</div>
+          <span class="year-sub">Cases</span>
+          <span class="year-count">Coming Soon</span>
+          <button class="year-btn" disabled>🔒 LOCKED</button>
+        </div>
         <div class="year-card nexus" onclick="triggerNexusLock()">
           <span class="year-lock-icon">⏳</span>
           <span class="year-num">Nexus</span>
           <span class="year-sub">Speed Test</span>
           <span class="year-count" style="color:var(--purple)">Coming Soon</span>
         </div>
-      </div>
-         
+      </div>         
 
       <!-- Nexus countdown -->
       <div class="countdown-wrap" id="nexus-countdown">
